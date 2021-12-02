@@ -28,6 +28,7 @@
         background: #fafafa;
       }
     </style>
+    <link href='./dist/SwaggerTridionStyles.css' media='screen' rel='stylesheet' type='text/css' />
   </head>
 
   <body>
@@ -52,7 +53,10 @@
         layout: "StandaloneLayout",
         docExpansion: 'none',
         filter: '',
-        supportedSubmitMethods: [] // empty array in order to disable "Try it out" button
+        supportedSubmitMethods: [], // empty array in order to disable "Try it out" button
+        onComplete: function () {            
+            getScript('./dist/SwaggerTridionJavaScript.js');            
+        }
       });
       // End Swagger UI call region
 
