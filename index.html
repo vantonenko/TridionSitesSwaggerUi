@@ -37,6 +37,22 @@
     <script src="dist/swagger-ui-bundle.js" charset="UTF-8"> </script>
     <script src="dist/swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
     <script>
+    function getScript(source) {
+      var script = document.createElement('script');
+      var prior = document.getElementsByTagName('script')[0];
+      script.async = 1;
+
+      script.onload = script.onreadystatechange = function (_, isAbort) {
+        if (isAbort || !script.readyState || /loaded|complete/.test(script.readyState)) {
+          script.onload = script.onreadystatechange = null;
+          script = undefined;
+        }
+      };
+
+      script.src = source;
+      prior.parentNode.insertBefore(script, prior);
+    }
+    
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
@@ -55,7 +71,7 @@
         filter: '',
         supportedSubmitMethods: [], // empty array in order to disable "Try it out" button
         onComplete: function () {            
-            getScript('./dist/SwaggerTridionJavaScript.js');            
+          getScript('./dist/SwaggerTridionJavaScript.js');            
         }
       });
       // End Swagger UI call region
