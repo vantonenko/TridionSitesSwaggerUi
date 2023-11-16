@@ -2442,6 +2442,40 @@
         }
       }
     },
+    "/v2.0/targetTypes": {
+      "get": {
+        "tags": [
+          "Lists"
+        ],
+        "summary": "Gets a list of Target Types.",
+        "description": "This operation returns an instance of 'TargetType' type.\n\n",
+        "operationId": "GetTargetTypes",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/TargetType"
+              },
+              "xml": {
+                "name": "TargetType",
+                "wrapped": true
+              },
+              "type": "array"
+            }
+          },
+          "500": {
+            "description": "There was an unexpected error while handling the request."
+          }
+        }
+      }
+    },
     "/v2.0/publications": {
       "get": {
         "tags": [
@@ -3213,10 +3247,17 @@
           {
             "name": "forAllUsers",
             "in": "query",
-            "description": "If specified and true, items locked by any user are returned, but only in Publications where the user has Publication Administration or Lock Management Rights (unless the user has System Administration privileges).\r\nBy default, only items locked by the current user are returned.",
+            "description": "If specified and true, items locked by any user are returned, but only in Publications where the user has Publication Administration or Lock Management Rights (unless the user has System Administration privileges).\r\nBy default, only items locked by the current user are returned.\r\nThis parameter is irrelevant and ignored if {lockUserId} parameter is specified.",
             "required": false,
             "type": "boolean",
             "default": false
+          },
+          {
+            "name": "lockUserId",
+            "in": "query",
+            "description": "The TCM URI of the user who locked the items.\r\nIf specified, The {forAllUsers} parameter is irrelevant and ignored.",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "lockFilter",
@@ -4058,6 +4099,52 @@
             "x-example": "1970-01-01T00:00:00Z",
             "type": "string",
             "format": "date-time"
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "description": "The priority of a publishing transaction.",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/PublishPriority"
+            },
+            "type": "string",
+            "enum": [
+              "Low",
+              "Normal",
+              "High"
+            ]
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "The state of a publishing transaction.",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/PublishTransactionState"
+            },
+            "type": "string",
+            "enum": [
+              "ScheduledForPublish",
+              "WaitingForPublish",
+              "InProgress",
+              "ScheduledForDeployment",
+              "WaitingForDeployment",
+              "Failed",
+              "Success",
+              "Warning",
+              "Resolving",
+              "Rendering",
+              "Throttled",
+              "ReadyForTransport",
+              "Transporting",
+              "Deploying",
+              "PreparingDeployment",
+              "PreCommittingDeployment",
+              "CommittingDeployment",
+              "WaitingForCdEnvironment",
+              "UnknownByClient"
+            ]
           }
         ],
         "responses": {
@@ -4788,529 +4875,6 @@
         }
       }
     },
-    "/v2.0/translationJobs": {
-      "get": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Gets an overview of all translation jobs.",
-        "description": "This operation returns an instance of 'TranslationJobOverview' type or one of the following inherited types:<ul class=\"model-list\"><li><span>TranslationJob</span></li></ul>\n\n",
-        "operationId": "ListTranslationJobs",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/TranslationJobOverview"
-              },
-              "xml": {
-                "name": "TranslationJobOverview",
-                "wrapped": true
-              },
-              "type": "array"
-            }
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Creates a new translation job.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "CreateTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "translationJob",
-            "in": "body",
-            "description": "The model to use for creating the new translation job.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          {
-            "name": "autoSend",
-            "in": "query",
-            "description": "Set to \"True\" to automatically send the new job to the translation management system for translation after it is created. By default, a value of \"False\" saves the job but keeps it in the Definition stage where you can still edit the Translation Job and add or remove items.",
-            "required": false,
-            "type": "boolean",
-            "default": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/translationJobs/{jobId}": {
-      "get": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Gets full details for the translation job with the specified job ID.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "FetchTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "The ID of the translation job you want to retrieve.",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Updates an existing translation job with new data.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "UpdateTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "The ID of the translation job you want to update.",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "translationJob",
-            "in": "body",
-            "description": "The model to use for the updated translation job.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Deletes the translation job that has the specified job ID.",
-        "description": "\n\n",
-        "operationId": "DeleteTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "The ID of the translation job you want to delete.",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "The request was successful and there is no content in the body of the response."
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/items/{escapedItemId}/translationInfo": {
-      "get": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Gets the translation information for a specified item.",
-        "description": "This operation returns an instance of 'TranslationInfo' type.\n\nThis route is used as the HATEOAS URL for the tm:TranslationInfo ListLink.",
-        "operationId": "FetchTranslationInfo",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "escapedItemId",
-            "in": "path",
-            "description": "The URI of an item with the colon escaped by replacing it with an underscore. E.g. \"tcm_0-1-1\".",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationInfo"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/translationJobs/{jobId}/send": {
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Sends a job for translation.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "SendTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "The ID of the translation job you want to send to the translation management system.",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/translationJobs/{jobId}/retry": {
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Retries to send or retrieve a translation job.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "RetryTranslationJob",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "The ID of the translation job you want to retry.",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/items/{escapedItemId}/pullTranslation": {
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Pulls a translation for a specified item by creating a pull translation job containing the item and sending it to translation.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\nThis route is used as HATEOAS URL for the tm:PullTranslation Applicable Action",
-        "operationId": "PullTranslation",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "escapedItemId",
-            "in": "path",
-            "description": "The URI of an item with the colon escaped by replacing it with an underscore. E.g. \"tcm_0-1-1\".",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/items/{escapedItemId}/pushTranslation": {
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Pushes the specified item into translation by creating a push translation job containing the item and sending it to translation.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\nThis route is used as HATEOAS URL for the tm:PushTranslation Applicable Action",
-        "operationId": "PushTranslation",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "escapedItemId",
-            "in": "path",
-            "description": "The URI of an item with the colon escaped by replacing it with an underscore. E.g. \"tcm_0-1-1\".",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
-    "/v2.0/translationJob/defaultData": {
-      "post": {
-        "tags": [
-          "Translation"
-        ],
-        "summary": "Gets a translation job model with default data, which you can use as the basis for creating a translation job.",
-        "description": "This operation returns an instance of 'TranslationJob' type.\n\n",
-        "operationId": "FetchTranslationJobDefaultData",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "itemIds",
-            "in": "body",
-            "description": "An array of item URIs that you want to send for translation.",
-            "required": true,
-            "schema": {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          },
-          {
-            "name": "jobType",
-            "in": "query",
-            "description": "Select the type of translation job:\r\n* PullJob – a job that is initiated from a target Publication and which pulls the translation from a source Publication that is higher up in the BluePrint.\r\n* PushJob – a job that is initiated from a source Publication and which pushes the translation to one or more target Publications that are lower down in the BluePrint.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/TranslationJobType"
-            },
-            "type": "string",
-            "enum": [
-              "None",
-              "PushJob",
-              "PullJob",
-              "UnknownByClient"
-            ]
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful.",
-            "schema": {
-              "$ref": "#/definitions/TranslationJob"
-            }
-          },
-          "400": {
-            "description": "The request data is invalid."
-          },
-          "403": {
-            "description": "The server understood the request but refuses to authorize it."
-          },
-          "404": {
-            "description": "The requested resource doesn't exist."
-          },
-          "500": {
-            "description": "There was an unexpected error while handling the request."
-          }
-        }
-      }
-    },
     "/v2.0/whoAmI": {
       "get": {
         "tags": [
@@ -5776,6 +5340,20 @@
             "required": false,
             "type": "boolean",
             "default": false
+          },
+          {
+            "name": "ownerId",
+            "in": "query",
+            "description": "The TCM URI of the owner.\r\nIf specified, only activity instances for the given owner are returned,\r\nand {forAllUsers} parameter is irrelevant and will be ignored.\r\nIf {assigneeId} is also specified then activity instances with given owner or assignee are returned.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "assigneeId",
+            "in": "query",
+            "description": "The TCM URI of the assignee user or group.\r\nIf specified, only activity instances assigned to the given assignee are returned,\r\nand {forAllUsers} parameter is irrelevant and will be ignored.\r\nIf {ownerId} is also specified then activity instances with given owner or assignee are returned.",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "activityStates",
@@ -6615,38 +6193,6 @@
         "Decision"
       ]
     },
-    "AddedItem": {
-      "description": "Represents an Item added to a {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob}.The item added to a Translation Job is not necessarily the item that is send for translation. For example,\n            if a Page is added without specifying the TranslateParentItems flag in the\n            , the Components on the Page are included in the Translation Job but\n            the Page itself will not.To change the items included in the Translation Job directly, use a Tridion Sites event subscription with the  event arguments.",
-      "properties": {
-        "IdRef": {
-          "description": "Gets the URI of the added item.",
-          "type": "string"
-        },
-        "Title": {
-          "description": "Gets the title of the Tridion item.",
-          "type": "string"
-        },
-        "ItemTypeWithSubtype": {
-          "description": "Gets a string that identifies the Tridion Item type.",
-          "type": "string"
-        },
-        "ResolveOptions": {
-          "description": "Gets or sets the {Tridion.TranslationManager.DomainModel.ResolveOptions} specifying it it is the Item itself, it's child Items or both that should be translated.",
-          "items": {
-            "$ref": "#/definitions/ResolveOptions"
-          },
-          "xml": {
-            "name": "ResolveOptions",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "AddedItem"
-      },
-      "type": "object"
-    },
     "ApiStatus": {
       "description": "Represents the status of the CoreService REST API.",
       "properties": {
@@ -6656,7 +6202,11 @@
           "type": "string"
         },
         "ApiVersion": {
-          "description": "Gets the current version of the CoreService REST API.",
+          "description": "Gets the current version of the CoreService REST API (for example: \"2.0\")",
+          "type": "string"
+        },
+        "ProductVersion": {
+          "description": "Gets the Tridion Sites Product Version (for example: \"10.0.1\")",
           "type": "string"
         },
         "ServerTime": {
@@ -8451,78 +8001,6 @@
       },
       "type": "object"
     },
-    "ErrorDetails": {
-      "description": "Provides details for errors occuring while sending or retrieving {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob}s.",
-      "properties": {
-        "ExceptionDetails": {
-          "$ref": "#/definitions/ExceptionDetails",
-          "description": "Gets the exception details for the error."
-        },
-        "JobId": {
-          "description": "Gets the Id of the Translation Job, or 0 if the error is not associated with a specific job.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "JobTitle": {
-          "description": "Gets the title of the Translation Job, or null if the error is not associated with a specific job.",
-          "type": "string"
-        },
-        "Severity": {
-          "$ref": "#/definitions/ErrorSeverity",
-          "description": "Gets the severity of the error."
-        },
-        "SourceLanguageId": {
-          "description": "Gets the id of the source language, or null if the error is not associated with a specific source language.",
-          "type": "string"
-        },
-        "TargetLanguageId": {
-          "description": "Gets the id of the target language, or null if the error is not associated with a specific target language.",
-          "type": "string"
-        },
-        "TcmItemCurrentTargetTitle": {
-          "description": "Gets the current title of the target Item, or null of the error is not associated with a specific target Item.",
-          "type": "string"
-        },
-        "TcmItemNewTargetTitle": {
-          "description": "Gets the title the Item as it is retrieved by from the translation management system, or null if the error is not associated with a\r\nspecific target Item.",
-          "type": "string"
-        },
-        "TcmItemSourceTitle": {
-          "description": "Gets the title of the source Item, or null if the error is not associated with a specific source Item.",
-          "type": "string"
-        },
-        "TcmItemSourceUri": {
-          "description": "Gets the TCM URI of the source Item, or tcm:0-0-0 if the item is not associated with a specific source item.",
-          "type": "string"
-        },
-        "TcmItemTargetUri": {
-          "description": "Gets the TCM URI of the target Item, or tcm:0-0-0 if the item is not associated with a specific source item.",
-          "type": "string"
-        },
-        "TmsItemId": {
-          "description": "Gets the id of the item in TMS, or null if the error is not associated with a specific TMS Job.",
-          "type": "string"
-        },
-        "TmsJobId": {
-          "description": "Gets the id of the TMS Translation Job, or null if the error is not associated with a specific TMS job.",
-          "type": "string"
-        }
-      },
-      "xml": {
-        "name": "ErrorDetails"
-      },
-      "type": "object"
-    },
-    "ErrorSeverity": {
-      "description": "\n            Indicates the severity of an error sending or retrieving a Translation Job.\n            \r\n\r\nMembers:\r\n* `Info` - \n            Information.\n            \r\n* `Warning` - \n            Errors that can impact usability but does not impact sending or retrieving Items (for example old jobs not being deleted)\n            \r\n* `Error` - \n            Errors stopping Items from being send to translation or retrieved from translation.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "Info",
-        "Warning",
-        "Error",
-        "UnknownByClient"
-      ]
-    },
     "ErrorType": {
       "description": "\n            Enum of load error types.\n            \r\n\r\nMembers:\r\n* `None` - \n            No error.\n            \r\n* `Error` - \n            General error.\n            \r\n* `SecurityError` - \n            User has no permissions to read an item.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
       "type": "string",
@@ -8532,42 +8010,6 @@
         "SecurityError",
         "UnknownByClient"
       ]
-    },
-    "ExceptionDetails": {
-      "description": "Provides details about the <seealso cref=\"T:System.Exception\" /> that caused the error reported in the <seealso cref=\"T:Tridion.TranslationManager.OpenApi.V2.Dto.ErrorDetails\" />",
-      "properties": {
-        "ExceptionTypeName": {
-          "description": "Gets the type name of original exception.",
-          "type": "string"
-        },
-        "InnerException": {
-          "$ref": "#/definitions/ExceptionDetails",
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.ExceptionDetails} for {System.Exception.InnerException}; or null if there is no inner exception."
-        },
-        "LocalizedMessages": {
-          "description": "Gets a {System.Collections.Generic.IDictionary`2} containing the <seealso cref=\"P:Tridion.TranslationManager.OpenApi.V2.Dto.ExceptionDetails.Message\" /> for each supported <seealso cref=\"T:System.Globalization.CultureInfo\" /> using the {System.Globalization.CultureInfo.Name} as the key.",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "Message": {
-          "description": "Gets the {System.Exception.Message}.",
-          "type": "string"
-        },
-        "OriginalException": {
-          "description": "Gets the original exception.",
-          "type": "object"
-        },
-        "StackTrace": {
-          "description": "Gets the {System.Exception.StackTrace}.",
-          "type": "string"
-        }
-      },
-      "xml": {
-        "name": "ExceptionDetails"
-      },
-      "type": "object"
     },
     "ExpandableLink": {
       "description": "Represents a link to an Identifiable Object which may contain the linked data.",
@@ -11559,26 +11001,6 @@
       },
       "type": "object"
     },
-    "ResolveOptions": {
-      "description": "\n            Defines which Items will be included in the Translation Job for an .\n            \r\n\r\nMembers:\r\n* `TranslateContainerItems` - \n            Translate container items (Folders, Pages, Structure Groups, etc.)\n            \r\n* `TranslateSubItems` - \n            Translate the items inside of containers (Components, Keywords, etc.)\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "TranslateContainerItems",
-        "TranslateSubItems",
-        "UnknownByClient"
-      ]
-    },
-    "RetrieveReason": {
-      "description": "\n            Used in  to indicate why the item was retrieved.\n            \r\n\r\nMembers:\r\n* `Unknown` - \n            The reason is not known.\n            Most likely the item was retrieved by a previous version of Translation Manager that could only retrieve items when they were Completed.\n            \r\n* `Completed` - \n            The item was completed in the Translation Management system.\n            Translation Manager consider the Item completed and will complete the Translation Job once all items are in this stage.\n            \r\n* `Review` - \n            The item was retrieved to allow review in Tridion Sites.\n            The item remains in control of the translation management system's workflow and Translation Manager will attempt to retrieve the Item again.\n            \r\n* `Preview` - \n            The item was retrieved to allow preview in Tridion Sites.\n            The item remains in control of the translation management system's workflow and Translation Manager will attempt to retrieve the Item again.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "Unknown",
-        "Completed",
-        "Review",
-        "Preview",
-        "UnknownByClient"
-      ]
-    },
     "Rights": {
       "description": "\n            Specifies the Rights used for security checks.\n            \r\n\r\nMembers:\r\n* `None` - \n            No rights.\n            \r\n* `PublicationAccess` - \n            Grants access to a publication.\n            \r\n* `PublicationManagement` - \n            Grants publication properties update. \n            \r\n* `FolderManagement` - \n            Grants create, update, delete rights on Folder.\n            \r\n* `StructureGroupManagement` - \n            Grants create, update, delete rights on StructureGroup.\n            \r\n* `SchemaManagement` - \n            Grants create, update, delete rights on Schema.\n            \r\n* `ComponentManagement` - \n            Grants create, update, delete rights on Components.\n            \r\n* `ComponentTemplateManagement` - \n            Grants create, update, delete rights on ComponentTemplates.\n            \r\n* `PageManagement` - \n            Grants create, update, delete rights on Pages.\n            \r\n* `PageTemplateManagement` - \n            Grants create, update, delete rights on PageTemplates.\n            \r\n* `ProfileManagement` - \n            Grants create, update, delete rights on TargetGroups.\n            \r\n* `PublishManagement` - \n            Grants rights to publish.\n            \r\n* `PermissionManagement` - \n            Grants rights to change rights on Repository and permissions on Organizational Items.\n            \r\n* `WorkflowManagement` - \n            Grants create, update, delete rights to manage Workflow.\n            To grant workflow management rights to a trustee, the WorkflowManager privilege must be used.\n            \r\n* `CategoryManagement` - \n            Grants create, update, delete rights on Categories.\n            \r\n* `TemplateBuildingBlockManagement` - \n            Grants create, update, delete rights on TemplateBuildingBlocks.\n            \r\n* `VirtualFolderManagement` - \n            Grants create, update, delete rights on VirtualFolders.\n            \r\n* `BundleManagement` - \n            Grants create, update, delete rights on Bundles.\n            \r\n* `BusinessProcessTypeManagement` - \n            Grants create, update, delete rights on Business Process Type.\n            \r\n* `PublicationAdministration` - \n            Grants repository-local administration rights.\n            \r\n* `LockManagement` - \n            Grants the user rights to unlock items locked by other users.\n            \r\n* `All` - \n            All rights.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
       "type": "string",
@@ -12263,90 +11685,6 @@
       },
       "type": "object"
     },
-    "TargetLanguage": {
-      "description": "Represents a target language on a translation management system.",
-      "properties": {
-        "Id": {
-          "description": "The identifier of the language (LCID).",
-          "type": "string"
-        },
-        "AvailableWorkflows": {
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflow}s that are available when translating to this {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage}.",
-          "items": {
-            "$ref": "#/definitions/TmsWorkflow"
-          },
-          "xml": {
-            "name": "TmsWorkflow",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "FriendlyName": {
-          "description": "The friendly (display) name of the language.",
-          "type": "string"
-        },
-        "IsReadOnly": {
-          "description": "Gets a value indicating whether the current user can modify the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage}.",
-          "type": "boolean"
-        },
-        "SelectedWorkflow": {
-          "$ref": "#/definitions/TmsWorkflow",
-          "description": "Gets or sets the currently selected {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflow}.\r\nSetting the workflow will select the workflow in {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.AvailableWorkflows} with a matching identifier. If unable to\r\nfind a workflow with the matching identifier the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.SelectedWorkflow} will be set to the first workflow\r\nin {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.AvailableWorkflows}."
-        },
-        "SelectedWorkflowId": {
-          "description": "Gets or sets the selected identifier of the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.SelectedWorkflow}.\r\nIf setting an identifier not present in {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.AvailableWorkflowIds} the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.SelectedWorkflowId}\r\nwill be set to the first entry in {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage.AvailableWorkflowIds}.",
-          "type": "string"
-        },
-        "TargetPublications": {
-          "description": "Gets a list of the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetPublication}s configured in Tridion for this {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage}.",
-          "items": {
-            "$ref": "#/definitions/TargetPublication"
-          },
-          "xml": {
-            "name": "TargetPublication",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "TargetLanguage"
-      },
-      "type": "object"
-    },
-    "TargetPublication": {
-      "description": "Represent a Tridion Sites Publication where translated content will be stored.\n            Each  has a list of valid s. It is not possible to add or remove from the list of s. Instead the\n             property can be changed to control if the  is used.\n            ",
-      "properties": {
-        "IdRef": {
-          "description": "Gets the TCM URI of the Publication.",
-          "type": "string"
-        },
-        "Title": {
-          "description": "Gets the title of the Publication.",
-          "type": "string"
-        },
-        "ConfigurationItemTitle": {
-          "description": "Returns the Title of the configured Item. In case the configuration is performed on a Publication this will be identical to {Tridion.TranslationManager.OpenApi.V2.Dto.TargetPublication.Title}.",
-          "type": "string"
-        },
-        "ConfigurationItemUri": {
-          "description": "Returns the TCM URI of the configured Item. In case the configuration is performed on a Publication this will be identical to {Tridion.TranslationManager.OpenApi.V2.Dto.TargetPublication.IdRef}.",
-          "type": "string"
-        },
-        "IsReadOnly": {
-          "description": "Gets a value indicating whether the current User can change this {Tridion.TranslationManager.OpenApi.V2.Dto.TargetPublication}.",
-          "type": "boolean"
-        },
-        "IsSelected": {
-          "description": "Gets or sets a value indicating whether this {Tridion.TranslationManager.OpenApi.V2.Dto.TargetPublication} is selected for the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetLanguage} it belongs to.",
-          "type": "boolean"
-        }
-      },
-      "xml": {
-        "name": "TargetPublication"
-      },
-      "type": "object"
-    },
     "TargetType": {
       "description": "Represents the data of a Target Type used as a target for publishing.",
       "required": [
@@ -12548,84 +11886,6 @@
       },
       "type": "object"
     },
-    "TmsLanguage": {
-      "description": "Represents a language on the translation management system.",
-      "properties": {
-        "Id": {
-          "description": "The identifier of the language (LCID).",
-          "type": "string"
-        },
-        "FriendlyName": {
-          "description": "The friendly (display) name of the language.",
-          "type": "string"
-        }
-      },
-      "xml": {
-        "name": "TmsLanguage"
-      },
-      "type": "object"
-    },
-    "TmsWorkflow": {
-      "description": "Represents a workflow defined on the translation management system.",
-      "properties": {
-        "Id": {
-          "description": "Gets the id of the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflow}.",
-          "type": "string"
-        },
-        "Title": {
-          "description": "Gets the title of the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflow}.",
-          "type": "string"
-        },
-        "Steps": {
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflowStep}s making up the workflow in both Translation Manager and the translation management system.\n            The s are not necessarily returned in the order they will be executed\n            as the translation management system might support branching and loops.\n            ",
-          "items": {
-            "$ref": "#/definitions/TmsWorkflowStep"
-          },
-          "xml": {
-            "name": "TmsWorkflowStep",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "TmsWorkflow"
-      },
-      "type": "object"
-    },
-    "TmsWorkflowStep": {
-      "description": "Represents a step in a {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflow}.",
-      "properties": {
-        "Id": {
-          "description": "Gets the id of the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflowStep}.",
-          "type": "string"
-        },
-        "Title": {
-          "description": "Gets the title of the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflowStep}.",
-          "type": "string"
-        },
-        "IsAfterTranslatedContentRetrieval": {
-          "description": "Gets a value indicating whether this step will only be executed after the content has been retrieved by Translation Manager.",
-          "type": "boolean"
-        },
-        "IsErrorStep": {
-          "description": "Gets a value indicating whether the {Tridion.TranslationManager.OpenApi.V2.Dto.TargetItem} has entered an error state requiring manual correction in the translation management system.",
-          "type": "boolean"
-        },
-        "IsSystemStep": {
-          "description": "Gets a value indicating whether this step will be completed automatically by the system without human interaction.",
-          "type": "boolean"
-        },
-        "IsTerminated": {
-          "description": "Gets a value indicating whether this step represents a state where the item has been deleted or canceled on the translation management system.",
-          "type": "boolean"
-        }
-      },
-      "xml": {
-        "name": "TmsWorkflowStep"
-      },
-      "type": "object"
-    },
     "TrackingKeyCondition": {
       "description": "Represents a condition on the value of a Tracking Key.",
       "properties": {
@@ -12651,510 +11911,6 @@
         "name": "TrackingKeyCondition"
       },
       "type": "object"
-    },
-    "TranslationDetails": {
-      "description": "Contains information about the translation state of the Item. Created by calling {M:Tridion.TranslationManager.DomainModel.TmSession.GetTcmItemTranslationInfo(System.String)}.",
-      "properties": {
-        "CompletedTranslationInfo": {
-          "$ref": "#/definitions/TranslationJobInfo",
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationJobInfo}s containing information about the last completed translation with this Item as the target Item; null if no translation has been completed with this Item as a target Item."
-        },
-        "InProgressTranslationInfo": {
-          "description": "Gets a list of {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationJobInfo}s containing information about the translations currently in progress where this Item is the target Item.",
-          "items": {
-            "$ref": "#/definitions/TranslationJobInfo"
-          },
-          "xml": {
-            "name": "TranslationJobInfo",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "SourceItemTitle": {
-          "description": "Gets the title of the source Item this {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} contains the translation information for.",
-          "type": "string"
-        },
-        "SourceItemUri": {
-          "description": "Gets the TCM URI of the source Item this {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} contains the translation information for.",
-          "type": "string"
-        },
-        "SourcePublicationTitle": {
-          "description": "Gets the title of the Source Publication from where Item translated.",
-          "type": "string"
-        },
-        "SourcePublicationUri": {
-          "description": "Gets the TCM URI of the Source Publication from where Item translated.",
-          "type": "string"
-        },
-        "Status": {
-          "$ref": "#/definitions/TranslationStatus",
-          "description": "Gets aggregated status for particular item."
-        },
-        "TargetItemTitle": {
-          "description": "Gets the title of the Item this {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} contains the translation information for.",
-          "type": "string"
-        },
-        "TargetItemUri": {
-          "description": "Gets the TCM URI of the Item this {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} contains the translation information for.",
-          "type": "string"
-        },
-        "TargetPublicationTitle": {
-          "description": "Gets the title of the Publication containing the Item.",
-          "type": "string"
-        },
-        "TargetPublicationUri": {
-          "description": "Gets the TCM URI of the Publication containing the Item.",
-          "type": "string"
-        }
-      },
-      "xml": {
-        "name": "TranslationDetails"
-      },
-      "type": "object"
-    },
-    "TranslationInfo": {
-      "description": "Contains information about the translation state of the Item.",
-      "properties": {
-        "ContextLanguage": {
-          "$ref": "#/definitions/TmsLanguage",
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsLanguage} of the context Publication (containing the current item)."
-        },
-        "TranslationFrom": {
-          "$ref": "#/definitions/TranslationDetails",
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} for this Item as the target Item."
-        },
-        "TranslationTo": {
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails} for all Items that can be the target for a translation with this Item as the source Item.",
-          "items": {
-            "$ref": "#/definitions/TranslationDetails"
-          },
-          "xml": {
-            "name": "TranslationDetails",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "TranslationInfo"
-      },
-      "type": "object"
-    },
-    "TranslationJob": {
-      "description": "Represents a Translation Job.",
-      "properties": {
-        "Id": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "Title": {
-          "type": "string"
-        },
-        "AddedItems": {
-          "description": "Gets a collection containing the {Tridion.TranslationManager.OpenApi.V2.Dto.AddedItem}s that have been added to this Translation Job.\r\nThe {Tridion.TranslationManager.OpenApi.V2.Dto.AddedItem}s represent either an Item that will be translated (for example a Component) or\r\nan Item that contains the Items that will be translated (for example a Folder).",
-          "items": {
-            "$ref": "#/definitions/AddedItem"
-          },
-          "xml": {
-            "name": "AddedItem",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "ConfigurationItemUri": {
-          "description": "Gets the TCM URI of the item containing the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.TranslationConfiguration} used for this Translation Job.\n            For a .Push job this will always point to an Item with a .\n            For a .Pull job this will always point to an Item with a .\n            ",
-          "type": "string"
-        },
-        "ContextPublicationTitle": {
-          "description": "Gets the title of the Publication containing the <seealso cref=\"P:Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.ConfigurationItemUri\" />.\n            For a .Push job this will be the Publication containing the source items.\n            For a .Pull job this will be the Publication where the translated items will be stored.\n            ",
-          "type": "string"
-        },
-        "CreationDate": {
-          "description": "Gets the date the Translation Job was created (in UTC).",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "Creator": {
-          "$ref": "#/definitions/Link",
-          "description": "Gets or sets a link to the user who created the Translation Job."
-        },
-        "DisplayState": {
-          "$ref": "#/definitions/TranslationJobDisplayState"
-        },
-        "Errors": {
-          "description": "Gets the collection of errors registered to this job.",
-          "items": {
-            "$ref": "#/definitions/ErrorDetails"
-          },
-          "xml": {
-            "name": "ErrorDetails",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "ErrorSeverityLevel": {
-          "$ref": "#/definitions/ErrorSeverity"
-        },
-        "HasError": {
-          "type": "boolean"
-        },
-        "IncludeItemsAlreadyTranslated": {
-          "description": "Gets or sets a value indicating whether items that have already been translated should be included in the job.",
-          "type": "boolean"
-        },
-        "IsAwaitingAuthorization": {
-          "description": "Gets a value indicating if the Translation Job currently have one or more {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJobQuote}s awaiting authorization (see remarks). and  will indicate\n            if quotes are available but they are for performance reasons only updated each time Translation Manager queries the\n            status of the s associated with this . This means they can contain\n            slightly outdated values.\n            returns the current status on the translation management system and might therefor\n            return s even if  currently is false; and it\n            might return an empty enumeration even if  currently is true.\n            ",
-          "type": "boolean"
-        },
-        "Language": {
-          "$ref": "#/definitions/TmsLanguage"
-        },
-        "Metadata": {
-          "$ref": "#/definitions/FieldsValueDictionary",
-          "description": "Gets or sets the metadata associated with the Translation Job."
-        },
-        "MetadataSchemaUri": {
-          "description": "Gets the TCM URI of the metadata schema used for this Translation Job.",
-          "type": "string"
-        },
-        "Priority": {
-          "$ref": "#/definitions/TranslationJobPriority",
-          "description": "Gets or sets the priority of the Translation Job. This value will only have an affect if {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationSystems.TranslationSystemConfiguration.SupportsPriority} returns true."
-        },
-        "ProgressPercentage": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "RequiredDate": {
-          "description": "Gets or sets the due date for this job.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "RevisionDate": {
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "Revisor": {
-          "$ref": "#/definitions/Link",
-          "description": "Gets or sets a link to the user who last modified the Translation Job."
-        },
-        "State": {
-          "$ref": "#/definitions/TranslationJobState"
-        },
-        "SupportsPriority": {
-          "description": "Show if {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob} support setting of priority.",
-          "type": "boolean"
-        },
-        "SupportsRequiredDate": {
-          "description": "Show if {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob} support setting required rate.",
-          "type": "boolean"
-        },
-        "TargetLanguages": {
-          "description": "Gets list of target languages available for this {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob}.",
-          "items": {
-            "$ref": "#/definitions/TargetLanguage"
-          },
-          "xml": {
-            "name": "TargetLanguage",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "Type": {
-          "description": "Gets a value indicating if the Translation Job is a translation to the Publication of the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.ConfigurationItemUri}\r\n(Pull job) or from the Publication (Push job).",
-          "items": {
-            "$ref": "#/definitions/TranslationJobType"
-          },
-          "xml": {
-            "name": "TranslationJobType",
-            "wrapped": true
-          },
-          "type": "array"
-        },
-        "WorkflowStatus": {
-          "description": "Gets or sets item count of language/workflowstep pairs.",
-          "items": {
-            "$ref": "#/definitions/WorkflowStatus"
-          },
-          "xml": {
-            "name": "WorkflowStatus",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "TranslationJob"
-      },
-      "type": "object"
-    },
-    "TranslationJobDisplayState": {
-      "description": "\n            Gets the state that should be displayed in the UI for the . This is slightly more detailed than the .\n            \r\n\r\nMembers:\r\n* `Error` - \n            The  is in an error state not related to retrieval or sending the . The errors are available in .\n            \r\n* `Canceled` - \n            The  was canceled in the translation management system before all items where retrieved.\n            \r\n* `Completed` - \n            The translation of the  has been completed.\n            \r\n* `Definition` - \n            It is still possible to edit the   before it is send for translation.\n            \r\n* `AwaitingAuthorization` - \n            One or more s is ready for authorization.\n            \r\n* `AwaitingAuthorizationAndError` - \n            One or more s is ready for authorization and one or more errors is available in .\n            \r\n* `ErrorRetrieving` - \n            The  is in an error state related to retrieving translations. The errors are available in .\n            \r\n* `InTranslation` - \n            The  is currently in translation. Some - but not all - items might have been canceled or completed.\n            \r\n* `ErrorSending` - \n            The  is in an error state related to sending the Items for translation. The errors are available in .\n            \r\n* `SubmittingToTranslation` - \n            The  is currently being send to the translation management system by the Translation Manager windows service.\n            \r\n* `ReadyForTranslation` - \n            The  is no longer in  state and is ready to be send for translation by the Translation Manager windows service.\n            \r\n* `Deleting` - \n            The  is being deleted by the Translation Manager windows service.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "Error",
-        "Canceled",
-        "Completed",
-        "Definition",
-        "AwaitingAuthorization",
-        "AwaitingAuthorizationAndError",
-        "ErrorRetrieving",
-        "InTranslation",
-        "ErrorSending",
-        "SubmittingToTranslation",
-        "ReadyForTranslation",
-        "Deleting",
-        "UnknownByClient"
-      ]
-    },
-    "TranslationJobInfo": {
-      "description": "Contains details on a specific translation to a target Item (see {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationInformation.TranslationDetails}).",
-      "properties": {
-        "IsObsolete": {
-          "description": "Indicates if an in-progress translation will be discarded due to a newer translation having been completed already.",
-          "type": "boolean"
-        },
-        "NewSourceVersionExists": {
-          "description": "Gets a value indicating whether this translation was started based on the current version of the source Item.",
-          "type": "boolean"
-        },
-        "NewTargetVersionExists": {
-          "description": "Gets a value indicating whether current version of target item contains this translation.",
-          "type": "boolean"
-        },
-        "RetrievedFromTranslationDate": {
-          "description": "Gets the date and time the Item was retrieved from translation.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "RetrieveReason": {
-          "$ref": "#/definitions/RetrieveReason",
-          "description": "Gets a RetrieveReason indicating if the retrieval was done to allow review or if it completed the translation job."
-        },
-        "SendForTranslationDate": {
-          "description": "Gets the date and time the Item was send for translation.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "SourceItemTitle": {
-          "description": "Gets the title of the source Item for this translation.",
-          "type": "string"
-        },
-        "SourceItemUri": {
-          "description": "Gets the TCM URI of the source Item for this translation.",
-          "type": "string"
-        },
-        "SourceLanguageId": {
-          "description": "Gets the language id of the source Item for this translation.",
-          "type": "string"
-        },
-        "SourceLanguageName": {
-          "description": "Gets the language name of the source Item for this translation.",
-          "type": "string"
-        },
-        "SourceLastModified": {
-          "description": "Gets the last modified date/time of the source item for this translation.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "SourceLatestRevision": {
-          "description": "Gets the minor version of the latest version of the source Item; null if the source Item is not versioned.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "SourceLatestVersion": {
-          "description": "Gets the major version of the latest version of the source Item; null if the source Item is not versioned.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "SourcePublicationTitle": {
-          "description": "Gets the title of the Publication containing the source Item for this translation.",
-          "type": "string"
-        },
-        "SourcePublicationUri": {
-          "description": "Gets the TCM URI of the Publication containing the source Item for this translation.",
-          "type": "string"
-        },
-        "SourceRevision": {
-          "description": "Gets the minor version of the source Item for this translation; null if the source Item is not versioned or the source version has been lost due to it being promoted or demoted in the BluePrint.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "SourceRevisionDate": {
-          "description": "Gets the revision date of the source item for this translation.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "SourceVersion": {
-          "description": "Gets the major version of the source Item for this translation; null if the source Item is not versioned or the source version has been lost due to it being promoted or demoted in the BluePrint.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "TargetItemUri": {
-          "description": "Gets last modified date of the current version of the target Item.",
-          "type": "string"
-        },
-        "TargetLanguageId": {
-          "description": "Gets the target language id of the Item for this translation.\n            This property will be available after first retrieve\n            ",
-          "type": "string"
-        },
-        "TargetLanguageName": {
-          "description": "Gets the target language name of the Item for this translation.\n            This property will be available after first retrieve\n            ",
-          "type": "string"
-        },
-        "TargetRevision": {
-          "description": "Gets the minor version of the target Item the translations where retrieved into.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "TargetRevisionDate": {
-          "description": "Gets the revision date/time of the target item of this translation.",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "TargetVersion": {
-          "description": "Gets the major version of the target Item the translations where retrieved into.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "TranslationJobId": {
-          "description": "Gets the id of the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob} the translation is part of.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "TranslationJobTitle": {
-          "description": "Gets the title of the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob} the translation is part of.",
-          "type": "string"
-        }
-      },
-      "xml": {
-        "name": "TranslationJobInfo"
-      },
-      "type": "object"
-    },
-    "TranslationJobOverview": {
-      "description": "Represents the basic information of a {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob}. This is used when getting a list of {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob}s where\r\nretrieving more data would slow down displaying the list.",
-      "properties": {
-        "Id": {
-          "description": "Gets the id uniquely identifying the Translation Job on a single Tridion Sites system,\r\nor 0 if it is a new Translation Job that has not yet been saved.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "Title": {
-          "description": "Gets or sets the title of the Translation Job.",
-          "type": "string"
-        },
-        "ContextPublicationTitle": {
-          "description": "Gets the title of the context Publication of this translation job. The context Publication will be the Publication containing the <seealso cref=\"P:Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.ConfigurationItemUri\" />.For a .Push job this will be the Publication containing the source items.For a .Pull job this will be the Publication where the translated items will be stored.",
-          "type": "string"
-        },
-        "DisplayState": {
-          "$ref": "#/definitions/TranslationJobDisplayState",
-          "description": "Gets the state of the Translation Job as it is reported to the user. This is based on the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJobOverview.State} but augmented with additional states\r\nsignalling \"sub states\" - for example error situations and the Translation Job awaiting authorization."
-        },
-        "ErrorSeverityLevel": {
-          "$ref": "#/definitions/ErrorSeverity",
-          "description": "Specify the highest {Tridion.TranslationManager.DomainModel.ErrorSeverity} found in {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.Errors}. This value should only be used if {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJobOverview.HasError} is true."
-        },
-        "HasError": {
-          "description": "Gets whether the job has a registered error.",
-          "type": "boolean"
-        },
-        "IsAwaitingAuthorization": {
-          "description": "Gets a value indicating if the Translation Job currently have one or more {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJobQuote}s awaiting authorization (see remarks). and  will indicate\n            if quotes are available but they are for performance reasons only updated each time Translation Manager queries the\n            status of the s associated with this . This means they can contain\n            slightly outdated values.\n            returns the current status on the translation management system and might therefor\n            return s even if  currently is false; and it\n            might return an empty enumeration even if  currently is true.\n            ",
-          "type": "boolean"
-        },
-        "Language": {
-          "$ref": "#/definitions/TmsLanguage",
-          "description": "Gets a value specifying the language of the Translation Job. For a {Tridion.TranslationManager.DomainModel.TranslationJobType}.Push job this will be the source language; for a {Tridion.TranslationManager.DomainModel.TranslationJobType}.Pull job it will be the target language."
-        },
-        "ProgressPercentage": {
-          "description": "Gets the percentage of individual resolved Items in this job (i.e. item/targetlanguage pairs) that have fully completed the translation cycle.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "RevisionDate": {
-          "description": "Gets the date the Translation Job was changed (server local time).",
-          "example": "1970-01-01T00:00:00Z",
-          "type": "string",
-          "format": "date-time"
-        },
-        "State": {
-          "$ref": "#/definitions/TranslationJobState",
-          "description": "Gets the main state the job is currently in.\r\nThe job will not change state due to for example an error. To get the state with error use {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJobOverview.DisplayState}."
-        },
-        "Type": {
-          "description": "Gets a value indicating if the Translation Job is a translation to the Publication of the {Tridion.TranslationManager.OpenApi.V2.Dto.TranslationJob.ConfigurationItemUri}\r\n(Pull job) or from the Publication (Push job).",
-          "items": {
-            "$ref": "#/definitions/TranslationJobType"
-          },
-          "xml": {
-            "name": "TranslationJobType",
-            "wrapped": true
-          },
-          "type": "array"
-        }
-      },
-      "xml": {
-        "name": "TranslationJobOverview"
-      },
-      "type": "object"
-    },
-    "TranslationJobPriority": {
-      "description": "\n            Specifies the priority of the translation job. Higher priority jobs will be send to\n            the TMS server first.\n            \r\n\r\nMembers:\r\n* `Low` - \n            Low priority\n            \r\n* `Normal` - \n            Normal priority\n            \r\n* `High` - \n            High priority\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "Low",
-        "Normal",
-        "High",
-        "UnknownByClient"
-      ]
-    },
-    "TranslationJobState": {
-      "description": "\n            State of a translation job.\n            \r\n\r\nMembers:\r\n* `Canceled` - \n            The job has been canceled.\n            \r\n* `Definition` - \n            The job is in definition state - it can still be edited.\n            \r\n* `ReadyForTranslation` - \n            The job has been defined, and is waiting for the Translation Manager Service to retrieve it.\n            \r\n* `SubmittingToTranslation` - \n            The job is being transferred to the translation management system.\n            \r\n* `InTranslation` - \n            The job is under control of the translation management system.\n            \r\n* `Completed` - \n            The job has been completed.\n            \r\n* `ReadyForDeletion` - \n            The job can be deleted and is waiting for the service to pick up the task.\n            \r\n* `Deleting` - \n            The job is currently being deleted.\n            \r\n* `None` - \n            Unspecified state (used to get jobs for all states).\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "Canceled",
-        "Definition",
-        "ReadyForTranslation",
-        "SubmittingToTranslation",
-        "InTranslation",
-        "Completed",
-        "ReadyForDeletion",
-        "Deleting",
-        "None",
-        "UnknownByClient"
-      ]
-    },
-    "TranslationJobType": {
-      "description": "\n            The Translation job type (push or pull)\n            \r\n\r\nMembers:\r\n* `None` - \n            Unspecified job type (used to get jobs for all types).\n            \r\n* `PushJob` - \n            Job that pushes translation from one translation source to one or more targets.\n            \r\n* `PullJob` - \n            Job that pulls the translation from one or more source languages to the context target.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "None",
-        "PushJob",
-        "PullJob",
-        "UnknownByClient"
-      ]
-    },
-    "TranslationStatus": {
-      "description": "\n            Represents translation status of an Item.\n            \r\n\r\nMembers:\r\n* `NotTranslated` - \n            Item is not translated.\n            \r\n* `InProgress` - \n            Translation in progress.\n            \r\n* `UpToDate` - \n            Items contains latest translation of source.\n            \r\n* `NewSourceVersionExists` - \n            New version of source available.\n            \r\n* `NewTargetVersionExists` - \n            Previous version of target item contains translation but target item was changed after.\n            \r\n* `UnknownByClient` - \n            Special reserved value used to notify an older API version client about the presence of an enumeration member added in a later API version.\n            Explicitly setting this value by a client is not allowed, but client code should check it and be able to handle such cases.\n            \r\n",
-      "type": "string",
-      "enum": [
-        "NotTranslated",
-        "InProgress",
-        "UpToDate",
-        "NewSourceVersionExists",
-        "NewTargetVersionExists",
-        "UnknownByClient"
-      ]
     },
     "TreeNode": {
       "properties": {
@@ -13962,28 +12718,6 @@
       },
       "type": "object"
     },
-    "WorkflowStatus": {
-      "description": "Contains information on which Items are in a specific the workflow step on the translation management system.",
-      "properties": {
-        "Language": {
-          "$ref": "#/definitions/TmsLanguage",
-          "description": "Gets the {Tridion.TranslationManager.OpenApi.V2.Dto.TmsLanguage} of the Items."
-        },
-        "NumberOfItems": {
-          "description": "Gets the number of items in the current {Tridion.TranslationManager.OpenApi.V2.Dto.WorkflowStatus.WorkflowStep} for this {Tridion.TranslationManager.OpenApi.V2.Dto.WorkflowStatus.Language}.",
-          "type": "integer",
-          "format": "int32"
-        },
-        "WorkflowStep": {
-          "$ref": "#/definitions/TmsWorkflowStep",
-          "description": "Gets the current {Tridion.TranslationManager.OpenApi.V2.Dto.TmsWorkflowStep} the Items are in on the translation management system."
-        }
-      },
-      "xml": {
-        "name": "WorkflowStatus"
-      },
-      "type": "object"
-    },
     "WorkflowType": {
       "description": "Represents a data of Workflow Type.Different workflows are intended for different purposes (such as workflow process started automatically on editing item, project workflow \n            where multiple items involved or task workflow process. The Workflow Type allows to distinguish workflow processes by their purpose. Predefined \n            Workflow Types are: Unspecified (tcm:0-1-67584) (default), SystemStarted  (tcm:0-2-67584) (set internally on saving of Component, \n            Page, Component Template or Page Template if they have associated Process Definition) and Task (tcm:0-3-67584).Workflow types are read-only and can't be created/modified/deleted through API. Custom workflow types can be registered in the \n            Tridion.ContentManager.config in the workflowTypes section.",
       "required": [
@@ -14156,10 +12890,6 @@
     {
       "name": "System",
       "description": "Provides general system-related operations."
-    },
-    {
-      "name": "Translation",
-      "description": "Provides operations related to translation."
     },
     {
       "name": "UserProfile",
